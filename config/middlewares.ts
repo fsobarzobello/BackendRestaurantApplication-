@@ -3,8 +3,12 @@ export default ({ env }) => [
   {
     name: 'strapi::cors',
     config: {
-      origin: ['http://localhost:3000', 'https://felipe-sobarzo-full-stack-res-a3332bfb2e0d.herokuapp.com/'], // Ajusta a tus dominios
+      origin: [
+        'https://felipe-sobarzo-full-stack-res-a3332bfb2e0d.herokuapp.com', // Frontend en producción
+        'http://localhost:3000', // Para desarrollo local
+      ],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      headers: ['Content-Type', 'Authorization'],
     },
   },
   'strapi::security',
