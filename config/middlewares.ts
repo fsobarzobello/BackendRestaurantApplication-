@@ -9,6 +9,7 @@ export default ({ env }) => [
       ],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       headers: ['Content-Type', 'Authorization'],
+      credentials: true, // Permite el envío de cookies
     },
   },
   'strapi::security',
