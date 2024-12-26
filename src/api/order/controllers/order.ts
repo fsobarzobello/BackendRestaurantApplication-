@@ -15,6 +15,32 @@ export default factories.createCoreController("api::order.order", ({ strapi }) =
         ctx.throw(400, "Payment token is required.");
       }
 
+      // Validar la existencia de los dishes en la base de datos
+      const dishDocumentIds = dishes.map((dish) => dish.id);
+
+      const validDishes = await strapi.documents("api::dish.dish").findMany({
+        filters: { documentId: { $in: dishDocumentIds } },
+      });
+
+      console.log("Found valid dishes:", validDishes);
+
+      const validDishDocumentIds = validDishes.map((dish) => dish.documentId);
+      const invalidDishDocumentIds = dishDocumentIds.filter(
+        (id) => !validDishDocumentIds.includes(id)
+      );
+
+      if (invalidDishDocumentIds.length > 0) {
+        console.error(
+          `Invalid dish IDs: ${invalidDishDocumentIds.join(", ")}`
+        );
+        ctx.throw(
+          400,
+          `The following dish IDs do not exist: ${invalidDishDocumentIds.join(
+            ", "
+          )}`
+        );
+      }
+
       const charge = await stripe.charges.create({
         amount: stripeAmount,
         currency: "usd",
@@ -38,7 +64,7 @@ export default factories.createCoreController("api::order.order", ({ strapi }) =
           amount: stripeAmount,
           city,
           state,
-          dishes,
+          dishes: validDishDocumentIds, // Relacionar los IDs válidos
           users_permissions_user: ctx.state.user?.id,
         },
         populate: ["users_permissions_user"], // Incluye la relación de usuario
@@ -89,6 +115,7 @@ export default factories.createCoreController("api::order.order", ({ strapi }) =
     // Devuelve directamente el documento
     return order;
   },
+
   async findByUser(ctx) {
     try {
       const { username } = ctx.params;

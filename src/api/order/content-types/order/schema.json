@@ -12,9 +12,6 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "dishes": {
-      "type": "json"
-    },
     "amount": {
       "type": "biginteger"
     },
@@ -38,6 +35,12 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "orders"
+    },
+    "dishes": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::dish.dish",
+      "mappedBy": "orders"
     }
   }
 }
