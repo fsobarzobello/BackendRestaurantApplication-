@@ -53,6 +53,7 @@ export default factories.createCoreController("api::order.order", ({ strapi }) =
         },
       });
 
+      const paymentMethod = charge.payment_method_details?.card?.brand || "Unknown";
       console.log("Stripe charge successful:", charge);
 
       // Crear la orden en la base de datos con populate
@@ -65,6 +66,7 @@ export default factories.createCoreController("api::order.order", ({ strapi }) =
           city,
           state,
           dishes: validDishDocumentIds, // Relacionar los IDs válidos
+          payment_method: paymentMethod,
           users_permissions_user: ctx.state.user?.id,
         },
         populate: ["users_permissions_user"], // Incluye la relación de usuario
@@ -146,4 +148,44 @@ export default factories.createCoreController("api::order.order", ({ strapi }) =
       return ctx.internalServerError("Failed to fetch orders");
     }
   },
+  async getOrderHistory(ctx) {
+    try {
+      const { username } = ctx.params;
+  
+      if (!username) {
+        return ctx.badRequest("Username is required");
+      }
+  
+      // Fetch the user based on the username
+      const user = await strapi.documents("plugin::users-permissions.user").findFirst({
+        filters: { username: { $eq: username } },
+        fields: ["id", "username", "email"],
+      });
+  
+      if (!user) {
+        return ctx.notFound("User not found");
+      }
+  
+      // Fetch orders with nested population for dishes and restaurant
+      const orders = await strapi.documents("api::order.order").findMany({
+        filters: { users_permissions_user: { id: user.id } },
+        populate: {
+          users_permissions_user: { fields: ["username", "email"] },
+          dishes: {
+            populate: {
+              restaurant: { fields: ["name"] }, // Ensure restaurant details are included
+            },
+          },
+        },
+        fields: ["charge_id", "amount", "address", "city", "state", "payment_method", "createdAt"],
+      });
+  
+      return ctx.send({ data: orders });
+    } catch (error) {
+      console.error("Error fetching order history:", error);
+      return ctx.internalServerError("Failed to fetch order history");
+    }
+  }
+  
+  
 }));

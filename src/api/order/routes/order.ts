@@ -36,6 +36,14 @@ export default {
           middlewares: [],
         },
       },
+      {
+        method: "GET",
+        path: "/orders/history/:username",
+        handler: "order.getOrderHistory",
+        config: {
+          auth: false, // Cambia esto si necesitas autenticación
+        },
+      },
     ],
   };
   

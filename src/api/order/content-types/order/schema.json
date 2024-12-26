@@ -41,6 +41,9 @@
       "relation": "manyToMany",
       "target": "api::dish.dish",
       "mappedBy": "orders"
+    },
+    "payment_method": {
+      "type": "string"
     }
   }
 }
